@@ -3,7 +3,7 @@
 Run code in isolated, ephemeral cloud sandboxes ([QuickTane](https://quicktane.com)) — one API call. TypeScript-native, zero runtime dependencies (uses the built-in `fetch`).
 
 ```bash
-npm install @quicktane/sdk
+npm install @quicktane-sdk/client
 ```
 
 Requires Node 18+.
@@ -11,7 +11,7 @@ Requires Node 18+.
 ## Quickstart
 
 ```ts
-import { QuickTane } from "@quicktane/sdk";
+import { QuickTane } from "@quicktane-sdk/client";
 
 const qt = new QuickTane("sk_live_...");        // or set QUICKTANE_API_KEY
 
@@ -36,7 +36,7 @@ const finished = await qt.getRun(run.runId);
 Register a webhook endpoint in your dashboard, then verify deliveries with the **raw** body:
 
 ```ts
-import { verifySignature } from "@quicktane/sdk";
+import { verifySignature } from "@quicktane-sdk/client";
 
 if (!verifySignature(rawBody, req.headers["x-quicktane-signature"], signingSecret)) {
   return res.status(400).end();

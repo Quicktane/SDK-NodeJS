@@ -1,5 +1,5 @@
 {
-  "name": "@quicktane/sdk",
+  "name": "@quicktane-sdk/client",
   "version": "0.1.0",
   "description": "Node/TypeScript SDK for QuickTane — run code in isolated, ephemeral cloud sandboxes.",
   "license": "MIT",
