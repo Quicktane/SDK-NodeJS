@@ -13,6 +13,7 @@ type Handler = (url: string, init: RequestInit) => { status: number; body: unkno
 function mockFetch(handler: Handler): typeof fetch {
   return (async (url: string, init: RequestInit) => {
     const { status, body } = handler(url, init);
+
     return new Response(JSON.stringify(body), {
       status,
       headers: { "Content-Type": "application/json" },
@@ -40,7 +41,9 @@ describe("QuickTane", () => {
         if (init.method === "POST") {
           return { status: 202, body: runBody() };
         }
+
         polls += 1;
+
         return {
           status: 200,
           body: runBody({
@@ -78,6 +81,54 @@ describe("QuickTane", () => {
       })),
     });
     await expect(qt.run("")).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("creates a sandbox, execs, does files, and kills", async () => {
+    const qt = new QuickTane("sk_test", {
+      baseUrl: "https://api.example.com",
+      fetch: mockFetch((url, init) => {
+        const path = new URL(url).pathname;
+
+        if (init.method === "POST" && path === "/v1/sessions") {
+          return { status: 202, body: { session_id: 7, status: "starting", language: "python" } };
+        }
+
+        if (init.method === "GET" && path === "/v1/sessions/7") {
+          return { status: 200, body: { session_id: 7, status: "ready", language: "python" } };
+        }
+
+        if (path === "/v1/sessions/7/exec") {
+          return { status: 200, body: { stdout: "hi\n", stderr: "", exit_code: 0, timed_out: false } };
+        }
+
+        if (init.method === "POST" && path === "/v1/sessions/7/files") {
+          return { status: 200, body: { ok: true } };
+        }
+
+        if (init.method === "GET" && path === "/v1/sessions/7/files") {
+          return { status: 200, body: { content: "file-content" } };
+        }
+
+        if (init.method === "DELETE" && path === "/v1/sessions/7") {
+          return { status: 200, body: { status: "stopped" } };
+        }
+
+        return { status: 404, body: {} };
+      }),
+    });
+
+    const sbx = await qt.createSandbox("python", { pollInterval: 0 });
+    expect(sbx.status).toBe("ready");
+
+    const result = await sbx.execCommand("echo hi");
+    expect(result.ok).toBe(true);
+    expect(result.stdout).toBe("hi\n");
+
+    await sbx.files.write("a.txt", "x");
+    expect(await sbx.files.read("a.txt")).toBe("file-content");
+
+    await sbx.kill();
+    expect(sbx.status).toBe("stopped");
   });
 
   it("verifies webhook signatures", () => {

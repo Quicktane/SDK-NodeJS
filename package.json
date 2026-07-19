@@ -22,7 +22,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": ["sandbox", "code-execution", "gvisor", "ai-agents", "code-interpreter"],
-  "homepage": "https://quicktane.com",
+  "homepage": "https://quicktane.com/docs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/quicktane/SDK-NodeJS.git"

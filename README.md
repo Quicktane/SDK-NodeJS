@@ -43,6 +43,24 @@ if (!verifySignature(rawBody, req.headers["x-quicktane-signature"], signingSecre
 }
 ```
 
+## Interactive sessions
+
+Run many commands in one live sandbox — file and process state persist between calls:
+
+```ts
+const sbx = await qt.createSandbox("python");   // waits until ready
+
+await sbx.files.write("app.py", "print('hello from a session')");
+const result = await sbx.execCommand("python app.py");
+console.log(result.stdout, result.ok);          // "hello from a session\n" true
+
+// state persists across execs:
+await sbx.execCommand("pip install requests");
+await sbx.exec("import requests; print(requests.__version__)");
+
+await sbx.kill();
+```
+
 ## Configuration
 
 ```ts

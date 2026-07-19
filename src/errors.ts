@@ -52,11 +52,13 @@ export async function raiseForStatus(response: Response): Promise<void> {
   }
 
   const ErrorClass = STATUS_MAP[response.status] ?? APIError;
+
   throw new ErrorClass(message, response.status, body);
 }
 
 function firstValidationError(body: unknown): string | undefined {
   const errors = (body as { errors?: Record<string, unknown> })?.errors;
+
   if (errors && typeof errors === "object") {
     for (const messages of Object.values(errors)) {
       if (Array.isArray(messages) && messages.length > 0) {
@@ -64,5 +66,6 @@ function firstValidationError(body: unknown): string | undefined {
       }
     }
   }
+
   return undefined;
 }

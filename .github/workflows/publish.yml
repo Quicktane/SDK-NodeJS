@@ -1,0 +1,31 @@
+name: Publish to npm
+
+# Publishes @quicktane/sdk to npm when a GitHub Release is published. Bump the
+# version in package.json first, commit, then cut a release tag (e.g. v0.1.1).
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm build
+      - name: Publish
+        run: npm publish --access public --provenance
+        env:
+          # Add a repo secret NPM_TOKEN (an npm automation token).
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
