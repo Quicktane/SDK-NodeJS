@@ -1,7 +1,11 @@
 name: Publish to npm
 
-# Publishes @quicktane/sdk to npm when a GitHub Release is published. Bump the
-# version in package.json first, commit, then cut a release tag (e.g. v0.1.1).
+# Publishes @quicktane-sdk/client to npm when a GitHub Release is published, using
+# npm Trusted Publishing (OIDC) — NO token/secret required. One-time setup: after
+# the package's first (manual) publish, add this repo + workflow as a Trusted
+# Publisher at npmjs.com → package → Settings → Trusted Publisher.
+#
+# Bump the version in package.json first, commit, then cut a release tag (e.g. v0.1.1).
 on:
   release:
     types: [published]
@@ -11,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # npm provenance
+      id-token: write # OIDC — Trusted Publishing + automatic provenance
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,8 +28,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm build
-      - name: Publish
-        run: npm publish --access public --provenance
-        env:
-          # Add a repo secret NPM_TOKEN (an npm automation token).
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Trusted Publishing requires npm >= 11.5.1 (newer than the CLI bundled
+      # with Node 22). Provenance is attached automatically under OIDC.
+      - run: npm install -g npm@latest
+      - name: Publish (Trusted Publishing — no token)
+        run: npm publish --access public
